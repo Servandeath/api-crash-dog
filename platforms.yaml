@@ -1,0 +1,34 @@
+platforms:
+  - id: wildberries
+    name: Wildberries
+    docs_url: https://openapi.wildberries.ru
+    spec_url: https://openapi.wildberries.ru/marketplace/swagger/api/en/swagger.yaml
+    track: structured
+
+  - id: moysklad
+    name: МойСклад
+    docs_url: https://dev.moysklad.ru/doc/api/remap/1.2
+    spec_source: github
+    spec_repo: moysklad/api-remap-1.2-openapi-specification
+    track: structured
+
+  - id: moex
+    name: MOEX ISS
+    docs_url: https://iss.moex.com/iss/reference
+    spec_url: https://iss.moex.com/iss/reference/.json
+    track: structured
+
+  - id: ozon
+    name: Ozon Seller
+    docs_url: https://docs.ozon.ru/api/seller
+    track: textual
+
+  - id: lamoda
+    name: Lamoda Seller v2
+    docs_url: https://academy.lamoda.ru
+    track: textual
+
+  - id: dellin
+    name: Деловые Линии
+    docs_url: https://dev.dellin.ru/api
+    track: textual
