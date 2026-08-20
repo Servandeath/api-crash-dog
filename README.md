@@ -21,7 +21,7 @@ Ozon, МойСклад, Деловые Линии, MOEX) зависят от ч�
 как поломка попадёт в продакшен.
 
 Близкое есть в части Keys проекта
-[wb-api-workbench](https://github.com/Servandeath/projects-wb-api-workbench) —
+Близкое есть в части Keys проекта [wb-api-workbench](https://github.com/Servandeath/wb-api-workbench) —
 там проверяется живость и права собственных ключей доступа. Предмет
 проверки здесь другой — сам внешний API, его документация и схема.
 
@@ -73,10 +73,8 @@ PowerShell, .venv.
 ## Контекст
 
 Один из инструментов в наборе для интеграции с API российских
-маркетплейсов и сервисов — наряду с
-[wb-barcode-gui](https://github.com/Servandeath/wb-barcode-gui),
-[wb-api-workbench](https://github.com/Servandeath/projects-wb-api-workbench),
-wb-boss-widget.
+маркетплейсов и сервисов — наряду с [wb-barcode-gui](https://github.com/Servandeath/wb-barcode-gui), [wb-api-workbench](https://github.com/Servandeath/wb-api-workbench),
+[wb-boss-widget](https://github.com/Servandeath/wb-boss-widget).
 
 ## Статус
 
