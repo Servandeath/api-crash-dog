@@ -10,6 +10,9 @@ dependencies = [
     "pyyaml>=6.0",
 ]
 
+[project.scripts]
+crashdog = "crashdog.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",

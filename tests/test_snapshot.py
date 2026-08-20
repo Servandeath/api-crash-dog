@@ -103,6 +103,41 @@ def test_github_source_without_spec_repo_raises():
         take_snapshot(platform)
 
 
+def test_local_source_reads_file_from_disk(tmp_path):
+    spec_file = tmp_path / "wildberries-general.yaml"
+    spec_file.write_text("openapi: 3.0.0\npaths: {}\n", encoding="utf-8")
+
+    platform = Platform(
+        id="wildberries", name="Wildberries", docs_url="https://dev.wildberries.ru",
+        track="structured", spec_source="local", spec_path=str(spec_file),
+    )
+
+    snapshot = take_snapshot(platform)
+
+    assert snapshot.platform_id == "wildberries"
+    assert snapshot.content == "openapi: 3.0.0\npaths: {}\n"
+
+
+def test_local_source_missing_file_raises(tmp_path):
+    platform = Platform(
+        id="wildberries", name="Wildberries", docs_url="https://dev.wildberries.ru",
+        track="structured", spec_source="local", spec_path=str(tmp_path / "does_not_exist.yaml"),
+    )
+
+    with pytest.raises(SnapshotError, match="не найден"):
+        take_snapshot(platform)
+
+
+def test_local_source_without_spec_path_raises():
+    platform = Platform(
+        id="wildberries", name="Wildberries", docs_url="https://dev.wildberries.ru",
+        track="structured", spec_source="local",
+    )
+
+    with pytest.raises(SnapshotError, match="spec_path"):
+        take_snapshot(platform)
+
+
 def test_github_source_empty_commits_raises(monkeypatch):
     platform = Platform(
         id="moysklad", name="МойСклад", docs_url="https://dev.moysklad.ru",

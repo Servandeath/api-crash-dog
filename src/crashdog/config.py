@@ -6,6 +6,7 @@ from pathlib import Path
 import yaml
 
 VALID_TRACKS = {"structured", "textual"}
+VALID_SPEC_SOURCES = {"github", "local"}
 
 
 class ConfigError(Exception):
@@ -21,15 +22,17 @@ class Platform:
     spec_url: str | None = None
     spec_source: str | None = None
     spec_repo: str | None = None
+    spec_path: str | None = None
 
 
 def load_platforms(path: str | Path = "platforms.yaml") -> list[Platform]:
     """Читает и валидирует список площадок из YAML-файла.
 
     Бросает ConfigError, если файл не найден, повреждён, у площадки
-    отсутствуют обязательные поля, указан недопустимый track,
-    повторяется id, или для structured-трека не указано ни spec_url,
-    ни пара spec_source+spec_repo.
+    отсутствуют обязательные поля, указан недопустимый track или
+    spec_source, повторяется id, или для structured-трека не указан
+    ни один из способов получить контракт: spec_url, spec_source=github
+    (+spec_repo) или spec_source=local (+spec_path).
     """
     file_path = Path(path)
     if not file_path.exists():
@@ -80,11 +83,23 @@ def _parse_entry(entry: dict, index: int) -> Platform:
     spec_url = entry.get("spec_url")
     spec_source = entry.get("spec_source")
     spec_repo = entry.get("spec_repo")
+    spec_path = entry.get("spec_path")
 
-    if track == "structured" and not spec_url and not (spec_source and spec_repo):
+    if spec_source is not None and spec_source not in VALID_SPEC_SOURCES:
         raise ConfigError(
-            f"Площадка '{entry['id']}': track=structured требует "
-            "spec_url либо пару spec_source+spec_repo"
+            f"Площадка '{entry['id']}': недопустимый spec_source '{spec_source}', "
+            f"ожидается одно из {sorted(VALID_SPEC_SOURCES)}"
+        )
+    if spec_source == "github" and not spec_repo:
+        raise ConfigError(f"Площадка '{entry['id']}': spec_source=github требует spec_repo")
+    if spec_source == "local" and not spec_path:
+        raise ConfigError(f"Площадка '{entry['id']}': spec_source=local требует spec_path")
+
+    has_spec_source = spec_source == "github" and spec_repo or spec_source == "local" and spec_path
+    if track == "structured" and not spec_url and not has_spec_source:
+        raise ConfigError(
+            f"Площадка '{entry['id']}': track=structured требует spec_url, "
+            "либо spec_source=github+spec_repo, либо spec_source=local+spec_path"
         )
 
     return Platform(
@@ -95,6 +110,7 @@ def _parse_entry(entry: dict, index: int) -> Platform:
         spec_url=spec_url,
         spec_source=spec_source,
         spec_repo=spec_repo,
+        spec_path=spec_path,
     )
 
 

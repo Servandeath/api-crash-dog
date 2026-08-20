@@ -1,8 +1,9 @@
 platforms:
   - id: wildberries
     name: Wildberries
-    docs_url: https://openapi.wildberries.ru
-    spec_url: https://openapi.wildberries.ru/marketplace/swagger/api/en/swagger.yaml
+    docs_url: https://dev.wildberries.ru/en/docs/openapi/api-information
+    spec_source: local
+    spec_path: manual_snapshots/wildberries-general.yaml
     track: structured
 
   - id: moysklad
@@ -15,12 +16,14 @@ platforms:
   - id: moex
     name: MOEX ISS
     docs_url: https://iss.moex.com/iss/reference
-    spec_url: https://iss.moex.com/iss/reference/.json
+    spec_url: https://iss.moex.com/iss/engines.json
     track: structured
 
   - id: ozon
     name: Ozon Seller
     docs_url: https://docs.ozon.ru/api/seller
+    spec_source: local
+    spec_path: manual_snapshots/ozon-seller.html
     track: textual
 
   - id: lamoda

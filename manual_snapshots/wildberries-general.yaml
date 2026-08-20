@@ -1,0 +1,1745 @@
+openapi: 3.0.1
+info:
+  title: General
+  version: general
+  x-file-name: general
+  description: |
+    <div class="api-block">
+
+    In this section:
+      - [WB API general information](/openapi/api-information#tag/introduction)
+      - how to [get started with the WB API](/openapi/api-information#tag/introduction/How-to-get-started-with-the-API)
+      - how to [log in](/openapi/api-information#tag/authorization) and [create tokens](/openapi/api-information#tag/authorization/How-to-create-a-personal-access-base-or-test-token)
+      - main [HTTP status codes](/openapi/api-information#tag/introduction/HTTP-status-codes)
+      - [rate limits](/openapi/api-information#tag/introduction/Rate-Limits)
+      - how to contact [support](/openapi/api-information#tag/introduction/Support)
+
+    Use the methods in this section to:
+      - check the [WB API connection](/openapi/api-information#tag/connectionCheck)
+      - get [seller portal news](/openapi/api-information#tag/newsApi/operation/getV2News)
+      - get [seller information](/openapi/api-information#tag/sellerInformation)
+      - [manage seller users](/openapi/api-information#tag/sellerUserManagement)
+
+    </div>
+security:
+  - HeaderApiKey: []
+tags:
+  - name: Introduction
+    x-displayName: Introduction
+    description: ''
+  - name: Authorization
+    x-displayName: Authorization
+    description: ''
+  - name: WB API Connection Check
+    x-displayName: WB API Connection Check
+    description: ''
+  - name: News API
+    x-displayName: News API
+    description: ''
+  - name: Seller Information
+    x-displayName: Seller Information
+    description: ''
+  - name: Seller User Management
+    x-displayName: Seller User Management
+    description: ''
+paths:
+  /ping:
+    servers:
+      - url: https://common-api.wildberries.ru
+    get:
+      operationId: getPing
+      x-readonly-method: true
+      x-category: all
+      tags:
+        - WB API Connection Check
+      security:
+        - HeaderApiKey: []
+      summary: Connection Check
+      description: |
+        Checks:
+          1. Whether the request successfully reaches the WB API.
+          2. The validity of the authorization token and request URL.
+          3. Whether the token category matches the service.
+
+        <div class="description_important">
+          This method is not intended to check the availability of WB services
+        </div>
+
+        Each service has its own version of the method depending on the domain:
+
+        | Category | Request URL |
+        |---------------|-----------------------|
+        | Content | `https://content-api.wildberries.ru/ping`<br>`https://content-api-sandbox.wildberries.ru/ping` |
+        | Analytics | `https://seller-analytics-api.wildberries.ru/ping` |
+        | Prices and Discounts | `https://discounts-prices-api.wildberries.ru/ping`<br>`https://discounts-prices-api-sandbox.wildberries.ru/ping` |
+        | Marketplace | `https://marketplace-api.wildberries.ru/ping` |
+        | Statistics | `https://statistics-api.wildberries.ru/ping`<br>`https://statistics-api-sandbox.wildberries.ru/ping` |
+        | Promotion | `https://advert-api.wildberries.ru/ping`<br>`https://advert-api-sandbox.wildberries.ru/ping` |
+        | Feedbacks and Questions | `https://feedbacks-api.wildberries.ru/ping`<br>`https://feedbacks-api-sandbox.wildberries.ru/ping` |
+        | Buyers Chat | `https://buyer-chat-api.wildberries.ru/ping` |
+        | Supplies | `https://supplies-api.wildberries.ru/ping` |
+        | Buyers Returns | `https://returns-api.wildberries.ru/ping` |
+        | Documents | `https://documents-api.wildberries.ru/ping` |
+        | Finance | `https://finance-api.wildberries.ru/ping` |
+        | Rates, News, Get Seller Information | `https://common-api.wildberries.ru/ping` |
+        | Seller User Management | `https://user-management-api.wildberries.ru/ping` |
+
+        <div class="description_limit">
+          A maximum of 3 requests every 30 <a href="/openapi/api-information#tag/introduction/Rate-Limits">seconds</a>. If you try to use this method programmatically, the method will be temporarily blocked. The rate limit applies individually to each instance of the method on each host
+        </div>
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  TS:
+                    type: string
+                    description: Request timestamp
+                  Status:
+                    type: string
+                    enum:
+                      - OK
+                    description: Status
+              example:
+                TS: '2024-08-16T11:19:05+03:00'
+                Status: OK
+        '401':
+          $ref: '#/components/responses/401'
+        '429':
+          $ref: '#/components/responses/429'
+  /api/communications/v2/news:
+    servers:
+      - url: https://common-api.wildberries.ru
+    get:
+      operationId: getV2News
+      x-readonly-method: true
+      x-category: commonapi
+      tags:
+        - News API
+      security:
+        - HeaderApiKey: []
+      summary: Getting Seller Portal News
+      description: |
+        The method allows getting news from the seller portal.
+        <br> To receive a successful response, one of the parameters `from` or `fromID` must be specified.
+        <br> You can get up to 100 news items per request.
+
+        <div class="description_limit">
+        <a href="/openapi/api-information#tag/introduction/Rate-Limits">Request limit</a> per one seller account:
+
+
+        | Type | Period | Limit | Interval | Burst |
+        | --- | --- | --- | --- | --- |
+        | Personal | 1 min | 1 request | 1 min | 10 requests |
+        | Service | 1 min | 1 request | 1 min | 10 requests |
+        | Base with secret | 1 min | 1 request | 1 min | 10 requests |
+        | Base | 1 h | 1 request | 1 h | 1 request |
+        </div>
+      parameters:
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            format: date
+            example: '2025-02-06'
+          description: Date from which to get news
+        - in: query
+          name: fromID
+          required: false
+          schema:
+            type: integer
+            format: uint64
+          description: The news ID, starting from which — including it — you need to get the list of news
+          example: 7369
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    description: News data
+                    items:
+                      type: object
+                      properties:
+                        content:
+                          type: string
+                          description: News text
+                          format: plaintext
+                        date:
+                          format: date-time
+                          type: string
+                          description: News publication date and time
+                        header:
+                          type: string
+                          description: News header
+                        id:
+                          type: integer
+                          description: News ID
+                        types:
+                          type: array
+                          description: News tags
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                description: Tag ID
+                              name:
+                                type: string
+                                description: Tag name
+              example:
+                data:
+                  - content: |
+                      Теперь в кампаниях ВБ.Медиа вы можете размещать баннеры для пользователей, которые взаимодействовали
+                      с товарами из определённой категории: покупали, искали, добавляли в корзину и избранное. Также можно
+                      выбрать период, за который хотите учитывать эти действия.Например, вы продаёте обувь. Рекламу можно
+                      показать людям, которые добавляли в корзину или избранное товары из этой категории за последние 14
+                      дней. Возможно, пользователи, которые попадают под этот критерий, уже совершили покупку. Поэтому вы
+                      можете уточнить настройки показа: добавить параметр «Не покупал товар из категории „Обувь“ в последние
+                      14 дней». Так вероятность того, что ваш баннер приведёт к покупке, будет выше.Чтобы запустить рекламу,
+                      создайте в кабинете ВБ.Медиа кампанию «По показам» и на шаге 4 включите «Поведенческие параметры».
+                      Эти параметры можно комбинировать с таргетированием по предполагаемым интересам, полу, возрасту и
+                      региону.Подробнее о том, как настроить таргетинг, — в инструкции «По показам».Запустить рекламу на
+                      Wildberries
+                    date: '2025-02-05T14:10:35+03:00'
+                    header: |
+                      Новые настройки кампаний в ВБ.Медиа: таргетируйте рекламу в зависимости от того, как аудитория
+                      использует сервисы Wildberries
+                    id: 7369
+                    types:
+                      - id: 4
+                        name: Маркетинг
+                  - content: |
+                      Добавили получение отчётов по текстам поисковых запросов в формате CSV. В описания методов «Создать
+                      отчёт» и «Получить отчёт» добавили описания и примеры моделей: • запросов — SearchReportTextReq, •
+                      успешных ответов (статус-код 200) — SearchReportTextRes.В ответ метода «Поисковые запросы по товару»
+                      добавили 8 полей и структуры price и medianPosition. Узнать больше можно в Журнале изменений.Эти методы
+                      доступны только с подпиской «Джем»
+                    date: '2025-02-06T18:14:58+03:00'
+                    header: Изменения в API «Аналитики и данных»
+                    id: 7373
+                    types:
+                      - id: 8
+                        name: API
+                      - id: 41
+                        name: Аналитика продавца
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/401'
+        '429':
+          $ref: '#/components/responses/429'
+  /api/v1/seller-info:
+    servers:
+      - url: https://common-api.wildberries.ru
+    get:
+      operationId: getV1SellerInfo
+      x-readonly-method: true
+      x-category: commonapi
+      tags:
+        - Seller Information
+      security:
+        - HeaderApiKey: []
+      summary: Get Seller Information
+      description: |
+        <div class="description_auth">
+          You can get seller information with a token of any <a href="/openapi/api-information#tag/authorization/Token-categories">category</a>.
+        </div>
+
+        This method allows you to obtain the seller's name and account ID.
+
+        <div class="description_limit">
+        <a href="/openapi/api-information#tag/introduction/Rate-Limits">Request limit</a> per one seller account:
+
+
+        | Type | Period | Limit | Interval | Burst |
+        | --- | --- | --- | --- | --- |
+        | Personal | 1 min | 1 request | 1 min | 10 requests |
+        | Service | 1 min | 1 request | 1 min | 10 requests |
+        | Base with secret | 1 min | 1 request | 1 min | 10 requests |
+        | Base | 24 h | 1 request | 24 h | 1 request |
+        </div>
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Seller's name
+                  sid:
+                    format: UUID
+                    type: string
+                    description: Wildberries Seller [ID](./api-information#tag/authorization/Kak-ustroen-token)
+                  tin:
+                    type: string
+                    description: Taxpayer identification number of the partner (INN in Russian)
+                  tradeMark:
+                    type: string
+                    description: Seller's trade name
+              example:
+                name: ИП Кружинин В. Р.
+                sid: e8923014-e233-47q8-898e-3cc86d67ea61
+                tin: '1234567890'
+                tradeMark: Flax Store
+        '401':
+          $ref: '#/components/responses/401'
+        '402':
+          $ref: '#/components/responses/402'
+        '429':
+          $ref: '#/components/responses/429'
+  /api/common/v1/rating:
+    servers:
+      - url: https://feedbacks-api.wildberries.ru
+    get:
+      operationId: getV1Rating
+      x-readonly-method: true
+      x-category: questionsandfeedback
+      x-token-types:
+        - service
+      tags:
+        - Seller Information
+      security:
+        - HeaderApiKey: []
+      summary: Get Seller Rating
+      description: |
+        <div class="description_auth">
+          To access the method, use a <a href="/openapi/api-information#tag/authorization/How-to-create-a-personal-access-base-or-test-token">token</a> for the <strong>Feedbacks and Questions</strong> category
+        </div>
+
+
+        <div class="description_token">
+            Method is <a href="/openapi/api-information#tag/authorization/Rules-for-using-API-access-tokens">available</a> by
+                <strong>Service</strong> token
+        </div>
+
+        The method returns the seller user rating and feedbacks count.
+
+        <div class="description_limit">
+        <a href="/openapi/api-information#tag/introduction/Rate-Limits">Request limit</a> per one seller account:
+
+        | Period | Limit | Interval | Burst |
+        | --- | --- | --- | --- |
+        | 1 min | 1 request | 1 min | 1 request |
+        </div>
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplierRatingModel'
+        '401':
+          $ref: '#/components/responses/401'
+        '402':
+          $ref: '#/components/responses/402'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+  /api/common/v1/subscriptions:
+    servers:
+      - url: https://common-api.wildberries.ru
+    get:
+      x-readonly-method: true
+      x-category: commonapi
+      operationId: getV1Subscriptions
+      x-token-types:
+        - service
+      tags:
+        - Seller Information
+      security:
+        - HeaderApiKey: []
+      summary: Get Jam Subscription Information
+      description: |
+        <div class="description_auth">
+          You can get Jam subscription information with a token of any <a href="/openapi/api-information#tag/authorization/Token-categories">category</a>.
+        </div>
+
+
+        <div class="description_token">
+            Method is <a href="/openapi/api-information#tag/authorization/Rules-for-using-API-access-tokens">available</a> by
+                <strong>Service</strong> token
+        </div>
+
+        The method returns [Jam](https://seller.wildberries.ru/monetization/jam) subscription information:
+          - If seller has never activated the Jam subscription, an empty `200` response is returned.
+          - If seller activated the subscription and never canceled it, the following is returned:
+            - subscription activation date `since`
+            - end date of the current paid period `till`
+          - If the subscription expired or was canceled but seller reactivated it, the following is returned:
+            - date of the first subscription activation `since`
+            - end date of the current paid period `till`
+          - If the subscription is inactive, the following is returned:
+            - date of the first subscription activation `since`
+            - end date of the last paid period `till`
+
+        <div class="description_limit">
+        <a href="/openapi/api-information#tag/introduction/Rate-Limits">Request limit</a> per one seller account:
+
+        | Period | Limit | Interval | Burst |
+        | --- | --- | --- | --- |
+        | 1 min | 1 request | 1 min | 10 requests |
+        </div>
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionsJamInfo'
+        '401':
+          $ref: '#/components/responses/401'
+        '402':
+          $ref: '#/components/responses/402'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+  /api/common/v1/tariff-constructor/options:
+    servers:
+      - url: https://common-api.wildberries.ru
+    get:
+      x-readonly-method: true
+      x-category: commonapi
+      operationId: getV1TariffConstructorOptions
+      x-token-types:
+        - service
+      tags:
+        - Seller Information
+      security:
+        - HeaderApiKey: []
+      summary: Get Information about Plan Builder Options
+      description: |
+        <div class="description_auth">
+          You can get information about Plan Builder options with a token of any <a href="/openapi/api-information#tag/authorization/Token-categories">category</a>.
+        </div>
+
+        The method returns information about all options and option packages that the seller activated in the [Plan Builder](https://seller.wildberries.ru/tariff-constructor).<br><br>
+
+        Options included in activated packages are returned in the `packages` array. Options activated outside of packages are returned in the `options` array.
+
+
+        <div class="description_token">
+            Method is <a href="/openapi/api-information#tag/authorization/Rules-for-using-API-access-tokens">available</a> by
+                <strong>Service</strong> token
+        </div>
+
+        <div class="description_limit">
+        <a href="/openapi/api-information#tag/introduction/Rate-Limits">Request limit</a> per one seller account:
+
+        | Period | Limit | Interval | Burst |
+        | --- | --- | --- | --- |
+        | 1 min | 1 request | 1 min | 10 requests |
+        </div>
+      parameters:
+        - name: locale
+          in: query
+          schema:
+            type: string
+            default: ru
+            example: ru
+            enum:
+              - ru
+              - en
+          description: |
+            Language of the response fields:
+              - `ru` — Russian
+              - `en` — English
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanBuilderOptionsInfo'
+              examples:
+                PlanBuilderSuccess:
+                  $ref: '#/components/examples/PlanBuilderSuccess'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/PlanBuilderErrors'
+              examples:
+                PlanBuilder400:
+                  $ref: '#/components/examples/PlanBuilder400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/PlanBuilderErrors'
+              examples:
+                PlanBuilder404:
+                  $ref: '#/components/examples/PlanBuilder404'
+        '429':
+          $ref: '#/components/responses/429'
+  /api/v1/invite:
+    servers:
+      - url: https://user-management-api.wildberries.ru
+    post:
+      operationId: postV1Invite
+      x-readonly-method: false
+      x-category: usermanagement
+      x-token-types:
+        - personal
+      tags:
+        - Seller User Management
+      security:
+        - HeaderApiKey: []
+      summary: Create an Invitation for a New User
+      description: |
+        <div class="description_token">
+            Method is <a href="/openapi/api-information#tag/authorization/Rules-for-using-API-access-tokens">available</a> by
+                <strong>Personal</strong> token
+        </div>
+
+        The method creates an invitation for a new user with access settings to the seller account sections.<br>
+        How access rights are assigned:
+        - If `access` is empty (`[]`) or not provided — by default, all access is granted, except for access to the showcase (`showcase`) and **Jam** (`changeJam`)
+        - If `access` specifies some of the account sections, then in addition to the access rights specified in the request, all default access rights are also granted
+        - If `access` lists all possible sections, access rights will be granted according to the request, without the default access rights
+        - If the same section (`code`) is specified twice in `access`:
+          - with different `disabled` values (`true` and `false`), access will not be granted
+          - with identical values of `"disabled": true`, access will not be granted
+          - with identical values of `"disabled": false`, access will be granted
+
+        <div class="description_limit">
+        <a href="/openapi/api-information#tag/introduction/Rate-Limits">Request limit</a> per one seller account:
+
+        | Period | Limit | Interval | Burst |
+        | --- | --- | --- | --- |
+        | 1 s | 1 request | 1 s | 5 requests |
+        </div>
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createInviteRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createInviteResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+  /api/v1/users:
+    servers:
+      - url: https://user-management-api.wildberries.ru
+    get:
+      operationId: getV1Users
+      x-readonly-method: true
+      x-category: usermanagement
+      x-token-types:
+        - personal
+      tags:
+        - Seller User Management
+      security:
+        - HeaderApiKey: []
+      summary: Get a List of Seller Active or Invited Users
+      description: |
+        <div class="description_token">
+            Method is <a href="/openapi/api-information#tag/authorization/Rules-for-using-API-access-tokens">available</a> by
+                <strong>Personal</strong> token
+        </div>
+
+        The method returns a list of seller account active or invited users.<br><br>
+
+        Specify the value of the `isInviteOnly` parameter to select the list:
+          - `isInviteOnly=true` — invited users list who have not yet activated access
+          - `isInviteOnly=false` or is not provided — active users list
+
+        For each user, you can get:
+          - user's role
+          - accessible sections
+          - invitation status
+
+        The list of invited users in the response is always sorted by creation date: from newest to oldest.
+
+        <div class="description_limit">
+        <a href="/openapi/api-information#tag/introduction/Rate-Limits">Request limit</a> per one seller account:
+
+        | Period | Limit | Interval | Burst |
+        | --- | --- | --- | --- |
+        | 1 s | 1 request | 1 s | 5 requests |
+        </div>
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            format: int64
+            maximum: 100
+            default: 100
+          description: The number of active or invited users in the response
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            format: int64
+            default: 0
+          description: |
+            How many results to skip. For example, for the value 10, the response will start with the 11 element
+        - in: query
+          name: isInviteOnly
+          schema:
+            type: boolean
+            default: false
+          description: |
+            - `true` — the list of invited users who have not yet activated access
+            - `false` or not provided — the list of active users of the seller account
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getUsersResponse'
+              examples:
+                invitesOnly:
+                  summary: isInviteOnly=true
+                  description: List of invited users
+                  value:
+                    total: 2
+                    countInResponse: 2
+                    users:
+                      - id: 0
+                        role: ''
+                        position: Аналитик
+                        phone: '79998888888'
+                        email: ''
+                        isOwner: false
+                        firstName: ''
+                        secondName: ''
+                        patronymic: ''
+                        goodsReturn: false
+                        isInvitee: true
+                        inviteeInfo:
+                          phoneNumber: '79998888888'
+                          position: Аналитик
+                          inviteUuid: 00000000-0000-4000-8000-000000000001
+                          expiredAt: '2025-12-01T00:00:00Z'
+                          isActive: true
+                        access:
+                          - code: supply
+                            disabled: true
+                          - code: changeJam
+                            disabled: true
+                          - code: showcase
+                            disabled: false
+                          - code: suppliersDocuments
+                            disabled: false
+                          - code: discountPrice
+                            disabled: true
+                          - code: feedbacks
+                            disabled: false
+                          - code: questions
+                            disabled: false
+                          - code: brands
+                            disabled: true
+                          - code: pointsForReviews
+                            disabled: false
+                          - code: pinFeedbacks
+                            disabled: false
+                          - code: finance
+                            disabled: true
+                          - code: balance
+                            disabled: false
+                          - code: oldAnalyticsReports
+                            disabled: false
+                          - code: marketplace
+                            disabled: false
+                          - code: brandsFlow
+                            disabled: false
+                          - code: copyrightComplaints
+                            disabled: false
+                          - code: pretrialClaims
+                            disabled: false
+                          - code: sellersChat
+                            disabled: false
+                          - code: brandzone
+                            disabled: false
+                          - code: brandzoneSubscribe
+                            disabled: false
+                      - id: 0
+                        role: ''
+                        position: ''
+                        phone: 7999XXXX102
+                        email: ''
+                        isOwner: false
+                        firstName: ''
+                        secondName: ''
+                        patronymic: ''
+                        goodsReturn: false
+                        isInvitee: true
+                        inviteeInfo:
+                          phoneNumber: '79996666666'
+                          position: Аналитик
+                          inviteUuid: 00000000-0000-4000-8000-000000000002
+                          expiredAt: '2025-12-10T00:00:00Z'
+                          isActive: false
+                        access:
+                          - code: supply
+                            disabled: true
+                          - code: changeJam
+                            disabled: true
+                          - code: showcase
+                            disabled: false
+                          - code: suppliersDocuments
+                            disabled: false
+                          - code: discountPrice
+                            disabled: true
+                          - code: feedbacks
+                            disabled: false
+                          - code: questions
+                            disabled: false
+                          - code: brands
+                            disabled: true
+                          - code: pointsForReviews
+                            disabled: false
+                          - code: pinFeedbacks
+                            disabled: false
+                          - code: finance
+                            disabled: true
+                          - code: balance
+                            disabled: false
+                          - code: oldAnalyticsReports
+                            disabled: false
+                          - code: marketplace
+                            disabled: false
+                          - code: brandsFlow
+                            disabled: false
+                          - code: copyrightComplaints
+                            disabled: false
+                          - code: pretrialClaims
+                            disabled: false
+                          - code: sellersChat
+                            disabled: false
+                          - code: brandzone
+                            disabled: false
+                          - code: brandzoneSubscribe
+                            disabled: false
+                usersOnly:
+                  summary: isInviteOnly=false
+                  description: List of active users
+                  value:
+                    total: 2
+                    countInResponse: 2
+                    users:
+                      - id: 1001
+                        role: user
+                        position: Аналитик
+                        phone: '79999999999'
+                        email: user1@example.com
+                        isOwner: true
+                        firstName: Иван
+                        secondName: Иванов
+                        patronymic: ''
+                        goodsReturn: true
+                        isInvitee: false
+                        inviteeInfo: null
+                        access:
+                          - code: supply
+                            disabled: true
+                          - code: changeJam
+                            disabled: true
+                          - code: showcase
+                            disabled: false
+                          - code: suppliersDocuments
+                            disabled: false
+                          - code: discountPrice
+                            disabled: true
+                          - code: feedbacks
+                            disabled: false
+                          - code: questions
+                            disabled: false
+                          - code: brands
+                            disabled: true
+                          - code: pointsForReviews
+                            disabled: false
+                          - code: pinFeedbacks
+                            disabled: false
+                          - code: finance
+                            disabled: true
+                          - code: balance
+                            disabled: false
+                          - code: oldAnalyticsReports
+                            disabled: false
+                          - code: marketplace
+                            disabled: false
+                          - code: brandsFlow
+                            disabled: false
+                          - code: copyrightComplaints
+                            disabled: false
+                          - code: pretrialClaims
+                            disabled: false
+                          - code: sellersChat
+                            disabled: false
+                          - code: brandzone
+                            disabled: false
+                          - code: brandzoneSubscribe
+                            disabled: false
+                      - id: 1002
+                        role: user
+                        position: Менеджер
+                        phone: '79997777777'
+                        email: user2@example.com
+                        isOwner: false
+                        firstName: Владимир
+                        secondName: Смирнов
+                        patronymic: ''
+                        goodsReturn: true
+                        isInvitee: true
+                        inviteeInfo:
+                          phoneNumber: '79997777777'
+                          position: Менеджер
+                          inviteUuid: 00000000-0000-4000-8000-000000000001
+                          expiredAt: '2025-12-01T00:00:00Z'
+                          isActive: true
+                        access:
+                          - code: supply
+                            disabled: true
+                          - code: changeJam
+                            disabled: true
+                          - code: showcase
+                            disabled: false
+                          - code: suppliersDocuments
+                            disabled: false
+                          - code: discountPrice
+                            disabled: true
+                          - code: feedbacks
+                            disabled: false
+                          - code: questions
+                            disabled: false
+                          - code: brands
+                            disabled: true
+                          - code: pointsForReviews
+                            disabled: false
+                          - code: pinFeedbacks
+                            disabled: false
+                          - code: finance
+                            disabled: true
+                          - code: balance
+                            disabled: false
+                          - code: oldAnalyticsReports
+                            disabled: false
+                          - code: marketplace
+                            disabled: false
+                          - code: brandsFlow
+                            disabled: false
+                          - code: copyrightComplaints
+                            disabled: false
+                          - code: pretrialClaims
+                            disabled: false
+                          - code: sellersChat
+                            disabled: false
+                          - code: brandzone
+                            disabled: false
+                          - code: brandzoneSubscribe
+                            disabled: false
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+  /api/v1/users/access:
+    servers:
+      - url: https://user-management-api.wildberries.ru
+    put:
+      operationId: putV1UsersAccess
+      x-readonly-method: false
+      x-category: usermanagement
+      x-token-types:
+        - personal
+      tags:
+        - Seller User Management
+      security:
+        - HeaderApiKey: []
+      summary: Update User's Access Permissions
+      description: |
+        <div class="description_token">
+            Method is <a href="/openapi/api-information#tag/authorization/Rules-for-using-API-access-tokens">available</a> by
+                <strong>Personal</strong> token
+        </div>
+
+        The method changes the access rights for one or more users.<br>
+        <br>
+        Only the data passed in the request parameters will be updated. The other fields will remain unchanged.
+
+        <div class="description_limit">
+        <a href="/openapi/api-information#tag/introduction/Rate-Limits">Request limit</a> per one seller account:
+
+        | Period | Limit | Interval | Burst |
+        | --- | --- | --- | --- |
+        | 1 s | 1 request | 1 s | 5 requests |
+        </div>
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateUserAccessRequest'
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+  /api/v1/user:
+    servers:
+      - url: https://user-management-api.wildberries.ru
+    delete:
+      operationId: deleteV1User
+      x-readonly-method: false
+      x-category: usermanagement
+      x-token-types:
+        - personal
+      tags:
+        - Seller User Management
+      security:
+        - HeaderApiKey: []
+      summary: Delete User
+      description: |
+        <div class="description_token">
+            Method is <a href="/openapi/api-information#tag/authorization/Rules-for-using-API-access-tokens">available</a> by
+                <strong>Personal</strong> token
+        </div>
+
+        The method removes a user from [the seller users list](/openapi/api-information#tag/sellerUserManagement/operation/getV1Users). This user will no longer have access to the seller account.
+
+        <div class="description_limit">
+        <a href="/openapi/api-information#tag/introduction/Rate-Limits">Request limit</a> per one seller account:
+
+        | Period | Limit | Interval | Burst |
+        | --- | --- | --- | --- |
+        | 1 s | 1 request | 1 s | 10 requests |
+        </div>
+      parameters:
+        - in: query
+          name: deletedUserID
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the user whose access will be revoked
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+components:
+  securitySchemes:
+    HeaderApiKey:
+      type: apiKey
+      name: Authorization
+      in: header
+  schemas:
+    Access:
+      type: array
+      description: Access settings for seller account sections
+      items:
+        type: object
+        required:
+          - code
+          - disabled
+        properties:
+          code:
+            type: string
+            description: |
+              The code for the seller account section the user will get access to:
+              * `balance` — View balance and withdraw funds
+              * `brands` — Brands management
+              * `changeJam` — Access to **Jam** subscription: **A/B tests**, photo tags, video autostarts, listing comparisons
+              * `discountPrice` — Change item prices, manage discounts and promos
+              * `finance` — Financial analytics. Balance statistics, financial reports, payment history
+              * `showcase` — Showcase management
+              * `suppliersDocuments` — View and download documents related to platform operations
+              * `supply` — Create and manage FBW supplies
+              * `questions` — View and respond to customer questions
+              * `pinFeedbacks` — Ability to pin and unpin reviews
+              * `pointsForReviews` — Points for reviews
+              * `feedbacks` — View and respond to customer reviews
+              * `oldAnalyticsReports` — Reports
+              * `marketplace` — Seller Warehouse
+              * `brandsFlow` — My brands
+              * `copyrightComplaints` — Copyright Claims
+              * `pretrialClaims` — Out-of-Court Claims
+              * `sellersChat` — Chat with Users
+              * `brandzone` — Edit Brand Zone
+              * `brandzoneSubscribe` — Manage Brand Zone Subscription
+            enum:
+              - balance
+              - brands
+              - changeJam
+              - discountPrice
+              - finance
+              - showcase
+              - suppliersDocuments
+              - supply
+              - questions
+              - pinFeedbacks
+              - pointsForReviews
+              - feedbacks
+              - oldAnalyticsReports
+              - marketplace
+              - brandsFlow
+              - copyrightComplaints
+              - pretrialClaims
+              - sellersChat
+              - brandzone
+              - brandzoneSubscribe
+          disabled:
+            type: boolean
+            description: |
+              * `true` — access to the section is disabled
+              * `false` — access to the section is enabled
+      example:
+        - code: balance
+          disabled: false
+        - code: pointsForReviews
+          disabled: false
+        - code: brands
+          disabled: true
+        - code: finance
+          disabled: true
+        - code: supply
+          disabled: true
+    getUsersResponse:
+      type: object
+      required:
+        - users
+        - total
+        - countInResponse
+      properties:
+        total:
+          type: integer
+          description: The total number of active or invited users in the list
+        countInResponse:
+          type: integer
+          description: The number of active or invited users on the current page
+        users:
+          type: array
+          description: User information
+          items:
+            type: object
+            required:
+              - id
+              - role
+              - position
+              - phone
+              - email
+              - isOwner
+              - firstName
+              - secondName
+              - patronymic
+              - goodsReturn
+              - isInvitee
+              - inviteeInfo
+              - access
+            properties:
+              id:
+                type: integer
+                description: User ID
+              role:
+                type: string
+                description: |
+                  User role:
+                  * `user` — user who have activated access
+                  * ` ` (empty string) — user who have not yet activated access
+                enum:
+                  - user
+                  - ''
+              position:
+                type: string
+                description: User's position
+              phone:
+                type: string
+                description: User's phone number
+              email:
+                type: string
+                description: User's email
+              isOwner:
+                type: boolean
+                description: Is the user the seller account's owner
+              firstName:
+                type: string
+                description: User's first name
+              secondName:
+                type: string
+                description: User's last name
+              patronymic:
+                type: string
+                description: User's patronymic
+              goodsReturn:
+                type: boolean
+                description: Can user approve item returns
+              isInvitee:
+                type: boolean
+                description: Is the user invited
+              inviteeInfo:
+                type: object
+                nullable: true
+                description: Invitation information, if the user is invited
+                properties:
+                  phoneNumber:
+                    type: string
+                    description: Invited user's phone number
+                  position:
+                    type: string
+                    description: Invited user's position
+                  inviteUuid:
+                    type: string
+                    description: Invitation ID
+                    format: UUID
+                  expiredAt:
+                    type: string
+                    format: date-time
+                    description: Invitation expiration date and time
+                  isActive:
+                    type: boolean
+                    description: |
+                      - `true` — the invitation is active
+                      - `false` — the invitation is inactive
+              access:
+                $ref: '#/components/schemas/Access'
+    createInviteRequest:
+      type: object
+      required:
+        - invite
+      properties:
+        access:
+          $ref: '#/components/schemas/Access'
+        invite:
+          type: object
+          required:
+            - phoneNumber
+          properties:
+            phoneNumber:
+              type: string
+              description: |
+                User's phone number for the invitation.
+                <details><summary><strong>Phone numbers from the following countries are supported:</strong></summary>• Armenia<br>• Azerbaijan<br>• Barbados<br>• Belarus<br>• Brazil<br>• China<br>• Czech Republic<br>• Georgia<br>• Hong Kong<br>• Italy<br>• Kazakhstan<br>• Kyrgyzstan<br>• Macau<br>• Russia<br>• Serbia<br>• Sweden<br>• Tajikistan<br>• Turkey<br>• UAE<br>• Uzbekistan</details>
+            position:
+              type: string
+              maxLength: 150
+              description: User's position
+      example:
+        access:
+          - code: balance
+            disabled: false
+          - code: pointsForReviews
+            disabled: false
+          - code: brands
+            disabled: true
+          - code: finance
+            disabled: true
+          - code: supply
+            disabled: true
+        invite:
+          phoneNumber: '79999999999'
+          position: Менеджер
+    createInviteResponse:
+      type: object
+      required:
+        - inviteID
+        - expiredAt
+        - isSuccess
+        - inviteUrl
+      description: Invitation details
+      properties:
+        inviteID:
+          type: string
+          format: uuid
+          description: Invitation ID
+        expiredAt:
+          type: string
+          format: date-time
+          description: Date and time of expiration of the invitation
+        isSuccess:
+          type: boolean
+          description: |
+            - `true` — the invitation was created successfully
+            - `false` — retry the request
+        inviteUrl:
+          type: string
+          description: The invitation URL that the user should follow
+      example:
+        inviteID: 741b8aa6-08ac-4782-8a9d-d931bcbbf608
+        expiredAt: '2025-10-06T10:56:04.335060746Z'
+        isSuccess: true
+        inviteUrl: https://seller.wildberries.ru/supplier-settings/supplier-card?inviteId=e5a813c7-65e0-4599-a550-a6b3d85661ed
+    updateUserAccessRequest:
+      type: object
+      required:
+        - usersAccesses
+      properties:
+        usersAccesses:
+          type: array
+          description: Access settings for user
+          items:
+            $ref: '#/components/schemas/UserAccess'
+      example:
+        usersAccesses:
+          - userId: 42334965
+            access:
+              - code: balance
+                disabled: false
+              - code: finance
+                disabled: true
+              - code: feedbacks
+                disabled: false
+          - userId: 52334965
+            access:
+              - code: balance
+                disabled: true
+              - code: changeJam
+                disabled: false
+              - code: showcase
+                disabled: false
+    UserAccess:
+      type: object
+      properties:
+        userId:
+          type: integer
+          description: User ID
+        access:
+          $ref: '#/components/schemas/Access'
+    errorResponse:
+      type: object
+      required:
+        - title
+        - detail
+        - requestId
+        - origin
+        - status
+      properties:
+        title:
+          type: string
+          description: Error title
+        detail:
+          type: string
+          description: Error details
+        requestId:
+          type: string
+          description: Request ID
+        origin:
+          type: string
+          description: Internal service name
+        status:
+          type: number
+          description: HTTP status code
+      example:
+        title: Bad Request
+        status: 400
+        detail: 'bad request cause: user is not in current supplier'
+        requestId: c479c04d0b576a9ba0b20fdf235004c2
+        origin: public-acl
+    SupplierRatingModel:
+      type: object
+      properties:
+        feedbackCount:
+          description: Feedbacks number
+          type: integer
+          example: 12355
+        valuation:
+          description: Seller rating
+          type: number
+          format: float
+          example: 4.55
+    SubscriptionsJamInfo:
+      type: object
+      description: Jam subscription information
+      required:
+        - state
+        - activationSource
+        - level
+        - since
+        - till
+      properties:
+        state:
+          type: string
+          example: active
+          enum:
+            - active
+            - inactive
+          description: |
+            Subscription state:
+              - `active` — active
+              - `inactive` — expired or canceled
+        activationSource:
+          type: string
+          enum:
+            - constructor
+            - jam
+          example: jam
+          description: |
+            Subscription activation source:
+              - `constructor` — purchased via the **Plan Builder** section
+              - `jam` — purchased via the **Jam Subscription** section
+        level:
+          type: string
+          enum:
+            - standard
+            - advanced
+            - premium
+          example: premium
+          description: |
+            Subscription level:
+              - `standard`
+              - `advanced`
+              - `premium`
+        since:
+          type: string
+          format: date-time
+          example: '2026-03-16T08:38:08.056406Z'
+          description: The date and time when the subscription was first activated. Does not change upon renewal or reactivation
+        till:
+          type: string
+          format: date-time
+          example: '2026-04-25T14:44:28.393587Z'
+          description: Subscription end date and time
+    PlanBuilderOptionsInfo:
+      type: object
+      required:
+        - activeOptionCount
+        - activePackageCount
+        - totalCommissionRate
+        - packages
+        - options
+      properties:
+        activeOptionCount:
+          type: number
+          format: int
+          example: 5
+          description: Number of active options not included in packages
+        activePackageCount:
+          type: number
+          format: int
+          example: 2
+          description: Number of active option packages
+        totalCommissionRate:
+          type: number
+          format: float
+          example: 4.6
+          description: Final fee for activated options and packages, % of turnover
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanBuilderPackage'
+          description: Activated option packages
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanBuilderOption'
+          description: Activated options
+    PlanBuilderPackage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 79861ed4-ccfd-4998-96a9-c90f8bf98bb9
+          description: Package ID
+        slug:
+          type: string
+          example: superSeller
+          description: Package code
+        name:
+          type: string
+          example: Суперпродавец
+          description: Package name in the language specified in the `locale` parameter
+        status:
+          type: string
+          example: active
+          enum:
+            - active
+            - pendingActivation
+            - pendingDeactivation
+          description: |
+            Package status:
+              - `active` — active
+              - `pendingActivation` — activated, will start working at 00:00 the next day
+              - `pendingDeactivation` — deactivated, will stop working at 00:00 the next day
+        activatedAt:
+          example: '2006-01-02T15:04:05.999+03:00'
+          description: Package activation date
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          example: '2006-01-02T15:04:05.999+03:00'
+          description: End date of the minimum duration period for the package. The option package cannot be deactivated before this date
+        commissionRate:
+          type: number
+          format: float
+          example: 2.5
+          description: Fee for the package, % of turnover
+        periodDuration:
+          type: number
+          format: int
+          example: 90
+          description: Minimum duration of the package
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanBuilderOptionShort'
+          description: Options included in the package
+    PlanBuilderOption:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4f134ae7-f768-481e-bac1-bf75d2fdc6f7
+          description: Option ID
+        slug:
+          type: string
+          example: pinReview
+          description: Option code
+        name:
+          type: string
+          example: Закрепление отзывов и видео из Wibes
+          description: Option name in the language specified in the `locale` parameter
+        status:
+          type: string
+          example: active
+          enum:
+            - active
+            - pendingActivation
+            - pendingDeactivation
+          description: |
+            Option status:
+              - `active` — active
+              - `pendingActivation` — activated, will start working at 00:00 the next day
+              - `pendingDeactivation` — deactivated, will stop working at 00:00 the next day
+        activatedAt:
+          example: '2006-01-02T15:04:05.999+03:00'
+          description: Option activation date
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          example: '2006-01-02T15:04:05.999+03:00'
+          description: End date of the minimum duration period for the option. The option cannot be deactivated before this date
+        commissionRate:
+          example: 2.1
+          description: Cost of activating the option, % of turnover. Returned if the response does not contain the `promotion` object
+          type: number
+          format: float
+        periodDuration:
+          type: number
+          format: int
+          example: 90
+          description: Minimum duration of the option
+        promotion:
+          allOf:
+            - $ref: '#/components/schemas/PlanBuilderPromotion'
+            - description: Акция, по которой подключена опция. Не возвращается, если опция подключена без акции или срок действия акции истёк
+            - {}
+    PlanBuilderOptionShort:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4f134ae7-f768-481e-bac1-bf75d2fdc6f7
+          description: Option ID
+        slug:
+          type: string
+          example: pinReview
+          description: Option code
+        name:
+          type: string
+          example: Закрепление отзывов и видео
+          description: Option name in the language specified in the `locale` parameter
+    PlanBuilderPromotion:
+      type: object
+      properties:
+        commissionRate:
+          type: number
+          format: float
+          example: 0.3
+          description: Cost of activating the option through a promo, % of turnover
+        expiresAt:
+          type: string
+          format: date-time
+          example: '2006-01-02T15:04:05.999+03:00'
+          description: End date of the promo price
+    PlanBuilderErrors:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Error title
+        detail:
+          type: string
+          description: Error details
+        code:
+          type: string
+          description: Internal error code
+        requestId:
+          type: string
+          description: Unique request ID
+        origin:
+          type: string
+          description: WB internal service ID
+        status:
+          type: number
+          description: HTTP status code
+        errors:
+          type: array
+          description: Request errors with specified parameters and error details
+  examples:
+    PlanBuilderSuccess:
+      value:
+        activeOptionCount: 2
+        activePackageCount: 1
+        totalCommissionRate: 2.3
+        packages:
+          - slug: super-seller
+            name: Суперпродавец
+            status: active
+            periodDuration: 90
+            commissionRate: 0.8
+            activatedAt: '2026-03-15T00:00:00+03:00'
+            expiresAt: '2026-06-15T00:00:00+03:00'
+            options:
+              - id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                slug: review-pin
+                name: Закрепление отзыва
+              - id: b2c3d4e5-f6a7-8901-bcde-f12345678901
+                slug: premium-seller-status
+                name: Статус Премиум-продавца
+        options:
+          - id: c3d4e5f6-a7b8-9012-cdef-123456789012
+            slug: daily-withdrawal
+            name: Запрос вывода денег в любой день
+            status: active
+            periodDuration: 90
+            commissionRate: 1
+            activatedAt: '2026-03-15T00:00:00+03:00'
+            expiresAt: '2026-05-20T00:00:00+03:00'
+          - id: d4e5f6a7-b8c9-0123-defa-234567890123
+            slug: priority-support
+            name: Приоритетная поддержка
+            status: pendingDeactivation
+            periodDuration: 30
+            activatedAt: '2026-03-15T00:00:00+03:00'
+            expiresAt: '2026-04-10T00:00:00+03:00'
+            promotion:
+              commissionRate: 0.3
+              expiresAt: '2026-04-30T00:00:00+03:00'
+    PlanBuilder400:
+      value:
+        title: Validation failed
+        detail: 'Invalid locale value ''fr''. Allowed values: ru, en'
+        status: 400
+        origin: options-service
+        code: INVALID_LOCALE
+        requestId: abc123-def456
+        errors:
+          - field: locale
+            message: 'Must be one of: ru, en'
+    PlanBuilder404:
+      value:
+        title: Options not available
+        detail: Options are not available for this supplier
+        status: 404
+        origin: options-service
+        code: OPTIONS_NOT_AVAILABLE
+  responses:
+    '401':
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+                description: Error title
+              detail:
+                type: string
+                description: Error details
+              code:
+                type: string
+                description: Internal error code
+              requestId:
+                type: string
+                description: Unique request ID
+              origin:
+                type: string
+                description: WB internal service ID
+              status:
+                type: number
+                description: HTTP status code
+              statusText:
+                type: string
+                description: Text of the HTTP status code
+              timestamp:
+                type: string
+                format: date-time
+                description: Request date and time
+          example:
+            title: unauthorized
+            detail: 'token problem; token is malformed: could not base64 decode signature: illegal base64 data at input byte 84'
+            code: 07e4668e--a53a3d31f8b0-[UK-oWaVDUqNrKG]; 03bce=277; 84bd353bf-75
+            requestId: 7b80742415072fe8b6b7f7761f1d1211
+            origin: s2s-api-auth-catalog
+            status: 401
+            statusText: Unauthorized
+            timestamp: '2024-09-30T06:52:38Z'
+    '402':
+      description: Payment required
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+                description: Error title
+              detail:
+                type: string
+                description: Error details. The error is only returned to services from the [Solutions for business Catalog](/business-solutions)
+          example:
+            title: payment required
+            detail: wb solution for business has insufficient funds on its balance. please top up the balance in the company's personal account https://dev.wildberries.ru/company
+    '403':
+      description: Access denied
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+                description: Error title
+              detail:
+                type: string
+                description: Error details
+              code:
+                type: string
+                description: Internal error code
+              requestId:
+                type: string
+                description: Request ID
+              origin:
+                type: string
+                description: WB internal service ID
+              status:
+                type: number
+                description: HTTP status code
+              statusText:
+                type: string
+                description: Text of the HTTP status code
+              timestamp:
+                type: string
+                format: date-time
+                description: Request date and time
+          example:
+            title: forbidden
+            detail: base token is not allowed
+            code: base token is not allowed for this path
+            requestId: 722199b2e15bbca48cc1d488a7989976
+            origin: s2s-finance
+            status: 403
+            statusText: Forbidden
+            timestamp: '2026-05-25T02:47:09Z'
+    '429':
+      description: Too many requests
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+                description: Error title
+              detail:
+                type: string
+                description: Error details
+              code:
+                type: string
+                description: Internal error code
+              requestId:
+                type: string
+                description: Unique request ID
+              origin:
+                type: string
+                description: WB internal service ID
+              status:
+                type: number
+                description: HTTP status code
+              statusText:
+                type: string
+                description: Text of the HTTP status code
+              timestamp:
+                type: string
+                format: date-time
+                description: Request date and time
+          example:
+            title: too many requests
+            detail: limited by c122a060-a7fb-4bb4-abb0-32fd4e18d489
+            code: 07e4668e-ac2242c5c8c5-[UK-4dx7JUdskGZ]
+            requestId: 9d3c02cc698f8b041c661a7c28bed293
+            origin: s2s-api-auth-catalog
+            status: 429
+            statusText: Too Many Requests
+            timestamp: '2024-09-30T06:52:38Z'

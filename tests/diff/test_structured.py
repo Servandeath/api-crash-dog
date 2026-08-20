@@ -3,7 +3,8 @@
 from datetime import datetime, timezone
 
 from crashdog.config import Platform
-from crashdog.diff.structured import DiffResult, compare
+from crashdog.diff import DiffResult
+from crashdog.diff.structured import compare
 from crashdog.snapshot import Snapshot
 
 

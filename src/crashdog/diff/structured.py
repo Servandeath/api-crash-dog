@@ -2,22 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
 import yaml
 
 from crashdog.config import Platform
+from crashdog.diff import DiffResult
 from crashdog.snapshot import Snapshot
-
-
-@dataclass(frozen=True)
-class DiffResult:
-    platform_id: str
-    changed: bool
-    summary: str
-    detected_at: datetime
 
 
 def compare(platform: Platform, previous: Snapshot | None, current: Snapshot) -> DiffResult:
